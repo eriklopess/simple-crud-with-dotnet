@@ -3,12 +3,24 @@ using Microsoft.AspNetCore.Mvc;
 var builder = WebApplication.CreateBuilder(args);
 var app = builder.Build();
 
-app.MapGet("/{code}", ([FromRoute] string code) => ProductRepository.GetBy(code));
-app.MapPost("/", (Product product) => ProductRepository.Add(product));
-app.MapPut("/", (Product product) => ProductRepository.UpdateProduct(product));
+app.MapGet("/{code}", ([FromRoute] string code) => {
+    Product p = ProductRepository.GetBy(code);
+    if (p != null)
+        return Results.Ok(p);
+    return Results.NotFound();
+    });
+app.MapPost("/", (Product product) => {
+    ProductRepository.Add(product);
+    return Results.Created($"/products/{product.Code}", product);
+});
+app.MapPut("/", (Product product) => {
+    ProductRepository.UpdateProduct(product);
+    return Results.Ok();
+});
 app.MapDelete("/{code}", ([FromRoute] string code) => {
     Product product = ProductRepository.GetBy(code);
     ProductRepository.RemoveProduct(product);
+    return Results.Ok();
 });
 
 app.Run();
